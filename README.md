@@ -2,12 +2,14 @@
 
 A League-style ping wheel for Zotero's PDF reader, inspired by [lolPing](https://github.com/darrenprx/lolPing). Ping a spot to flag it for a moment, or ping it twice to save the ping as a note annotation that shows in the annotation sidebar, syncs, and goes into the PDF when you export it.
 
-![The ping wheel open over a PDF in Zotero, an All In ping saved on the page as its art, and a click on the art opening its note](docs/demo.mov)
+![The ping wheel open over a PDF in Zotero, pings popping up on the page, a double ping saved as its art, and a click on the art opening its note](docs/demo.gif)
 
 ## Install
 
 1. Download the `.xpi` file from the [latest release](../../releases/latest).
 2. In Zotero 7, 8 or 9: Tools → Plugins → gear icon → Install Plugin From File… → choose the file.
+
+![Zotero's Plugins Manager with the gear menu open and Install Plugin From File… highlighted](docs/install.png)
 
 ## Use
 
@@ -22,6 +24,8 @@ To put the pings into the PDF file itself, right-click the PDF in your library �
 ## Settings
 
 Zotero Settings → Ping Wheel: the trigger (G by default, another key, or Alt, Shift, Ctrl or Command), the centre action, when to save a note (a double ping, or every ping), wheel size, sound and volume, tags, art on ping notes, the wheel layout, and an optional assets folder.
+
+![The Ping Wheel pane in Zotero Settings, with G as the trigger key and a double ping to save a note](docs/setting.png)
 
 **Assets folder.** The plugin comes with lolPing's ping art and sounds. To use other copies of the same files, for example from a newer lolPing, download lolPing's source from [GitHub](https://github.com/darrenprx/lolPing) (Code → Download ZIP), unzip it, and paste the path of the unzipped folder into the assets folder setting. Any file the folder doesn't have comes from the plugin.
 

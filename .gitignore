@@ -5,6 +5,7 @@
 lolPing-main/
 
 # Screen recordings. Commit the converted GIF, not the raw video.
+*.mov
 *.mp4
 
 .DS_Store
