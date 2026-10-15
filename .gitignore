@@ -1,0 +1,11 @@
+# Built plugin packages. Attach them to a GitHub release instead.
+*.xpi
+
+# lolPing's own source, downloaded for reference. It isn't ours to publish.
+lolPing-main/
+
+# Screen recordings. Commit the converted GIF, not the raw video.
+*.mov
+*.mp4
+
+.DS_Store

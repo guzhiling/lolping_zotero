@@ -1,0 +1,81 @@
+<vbox id="pingwheel-prefs">
+	<groupbox>
+		<label><html:h2>Ping Wheel</html:h2></label>
+		<description>Open a PDF in Zotero, hold the trigger, press and drag on the page, then let go on a ping. The ping's icon shows for a moment. Give the same ping again in the same spot within 3 seconds to save it as a colored note annotation.</description>
+
+		<hbox align="center">
+			<label value="Trigger:"/>
+			<menulist preference="extensions.zotero-pingwheel.trigger">
+				<menupopup>
+					<menuitem label="A key (set below)" value="key"/>
+					<menuitem label="Alt (Option on a Mac)" value="alt"/>
+					<menuitem label="Shift" value="shift"/>
+					<menuitem label="Ctrl" value="ctrl"/>
+					<menuitem label="Command / Windows key" value="meta"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+
+		<hbox align="center">
+			<label value="Key:"/>
+			<html:input type="text" maxlength="1" style="width: 3em;" preference="extensions.zotero-pingwheel.triggerKey"/>
+		</hbox>
+		<description>A letter or number key, G by default. It works once the PDF page has focus, so click the page first. Avoid H and S, which Zotero already uses.</description>
+
+		<hbox align="center">
+			<label value="Letting go in the centre:"/>
+			<menulist preference="extensions.zotero-pingwheel.centerAction">
+				<menupopup>
+					<menuitem label="Places a Generic ping" value="generic"/>
+					<menuitem label="Cancels" value="cancel"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+
+		<hbox align="center">
+			<label value="Wheel size:"/>
+			<menulist preference="extensions.zotero-pingwheel.wheelSize">
+				<menupopup>
+					<menuitem label="Small" value="small"/>
+					<menuitem label="Medium" value="medium"/>
+					<menuitem label="Large" value="large"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+
+		<checkbox label="Play a sound when placing a ping" preference="extensions.zotero-pingwheel.sound"/>
+		<hbox align="center">
+			<label value="Volume:"/>
+			<menulist preference="extensions.zotero-pingwheel.volume">
+				<menupopup>
+					<menuitem label="25%" value="25"/>
+					<menuitem label="40%" value="40"/>
+					<menuitem label="60%" value="60"/>
+					<menuitem label="80%" value="80"/>
+					<menuitem label="100%" value="100"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+
+		<hbox align="center">
+			<label value="Save a note:"/>
+			<menulist preference="extensions.zotero-pingwheel.saveMode">
+				<menupopup>
+					<menuitem label="When you give the same ping twice in one spot within 3 seconds" value="double"/>
+					<menuitem label="On every ping" value="single"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+
+		<checkbox label="Tag each ping with its type (for example ping:danger)" preference="extensions.zotero-pingwheel.addTag"/>
+		<checkbox label="Show each ping's art over its note in the reader" preference="extensions.zotero-pingwheel.artOnNotes"/>
+
+		<label value="Wheel layout (8 pings, clockwise from the top, separated by commas):"/>
+		<html:input type="text" style="width: 100%;" preference="extensions.zotero-pingwheel.wheel"/>
+		<description>Available: danger, push, omw, allin, assist, needvision, missing, enemyvision, generic, bait, visioncleared, missingflip. An invalid list falls back to the default.</description>
+
+		<label value="Assets folder (optional):"/>
+		<html:input type="text" style="width: 100%;" preference="extensions.zotero-pingwheel.assetsDir"/>
+		<description>Leave empty to use the art and sounds that come with the plugin. To use other copies, for example from a newer lolPing, paste the full path of the lolPing folder (or its assets folder) here. Files it doesn't have come from the plugin.</description>
+	</groupbox>
+</vbox>

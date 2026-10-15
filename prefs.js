@@ -1,0 +1,11 @@
+pref("extensions.zotero-pingwheel.trigger", "key");
+pref("extensions.zotero-pingwheel.triggerKey", "g");
+pref("extensions.zotero-pingwheel.centerAction", "generic");
+pref("extensions.zotero-pingwheel.wheel", "danger,push,omw,allin,assist,needvision,missing,enemyvision");
+pref("extensions.zotero-pingwheel.wheelSize", "medium");
+pref("extensions.zotero-pingwheel.sound", true);
+pref("extensions.zotero-pingwheel.volume", "60");
+pref("extensions.zotero-pingwheel.saveMode", "double");
+pref("extensions.zotero-pingwheel.addTag", true);
+pref("extensions.zotero-pingwheel.artOnNotes", true);
+pref("extensions.zotero-pingwheel.assetsDir", "");
