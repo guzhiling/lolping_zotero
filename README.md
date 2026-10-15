@@ -2,7 +2,7 @@
 
 A League-style ping wheel for Zotero's PDF reader, inspired by [lolPing](https://github.com/darrenprx/lolPing). Ping a spot to flag it for a moment, or ping it twice to save the ping as a note annotation that shows in the annotation sidebar, syncs, and goes into the PDF when you export it.
 
-![The ping wheel open over a PDF in Zotero, an All In ping saved on the page as its art, and a click on the art opening its note](docs/demo_full.gif)
+![The ping wheel open over a PDF in Zotero, an All In ping saved on the page as its art, and a click on the art opening its note](docs/demo.mov)
 
 ## Install
 
