@@ -1,7 +1,7 @@
 /* global Zotero, Components, ChromeUtils, PingWheel:writable */
 /*
  * Ping Wheel for Zotero.
- * Wheel geometry (pickSlice) and ping colors adapted from lolPing,
+ * Wheel geometry (pickSlice), the wheel's look and ping colors adapted from lolPing,
  * MIT License, Copyright (c) 2026 Danrui Meng. See LICENSE.
  * The files in assets/ are (c) Riot Games, Inc., taken from lolPing. See LICENSE.
  */
@@ -31,7 +31,12 @@ var PW_PINGS = [
   { id: 'missingflip', name: 'Upside-down Missing', glyph: '\u00BF', color: '#f2c518', icon: 'enemy_missing_flipped', art: ['enemy_missing_flipped'], sound: 'MIA', tone: [660, 880] },
 ];
 var PW_DEFAULT_WHEEL = ['danger', 'push', 'omw', 'allin', 'assist', 'needvision', 'missing', 'enemyvision'];
-var PW_SIZES = { small: 88, medium: 110, large: 136 };
+// lolPing's wheel in its own units. The svg draws it in a 600-unit viewBox scaled to the wheel size.
+var PW_WHEEL = { size: 600, innerR: 86, outerR: 188, extR: 288, iconR: 137, iconSize: 48 };
+// Whole wheel across, in pixels, including the four compass tips. lolPing's default is 600.
+var PW_SIZES = { small: 360, medium: 450, large: 560 };
+// Slice icons are tinted gold until hovered, as in lolPing.
+var PW_ICON_TINT = 'grayscale(1) sepia(.75) saturate(1.3) brightness(1.15)';
 // On-screen size of a ping's art, both when it pops up and on a saved note.
 var PW_ART_PX = 46;
 // A second ping of the same kind this soon and this close (screen pixels) saves a note.
@@ -102,6 +107,13 @@ function pwPolar(r, deg) {
   return [r * Math.sin(t), -r * Math.cos(t)];
 }
 
+function pwSvg(doc, tag, attrs, parent) {
+  const el = doc.createElementNS(PW_SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v));
+  if (parent) parent.appendChild(el);
+  return el;
+}
+
 function pwSector(ri, ro, a0, a1) {
   const [x0, y0] = pwPolar(ro, a0), [x1, y1] = pwPolar(ro, a1);
   const [x2, y2] = pwPolar(ri, a1), [x3, y3] = pwPolar(ri, a0);
@@ -125,6 +137,7 @@ PingWheel = {
   _notifierID: null,
   _prefObservers: [],
   _drawPatches: [],
+  _wheelCount: 0,
 
   init({ id, version, rootURI }) {
     this.id = id;
@@ -329,11 +342,11 @@ PingWheel = {
     this._swallowAltUp = e.altKey;
     this._ensureAssets();
 
-    const ro = PW_SIZES[this.pref('wheelSize')] || PW_SIZES.medium;
+    const size = PW_SIZES[this.pref('wheelSize')] || PW_SIZES.medium;
     const g = {
       xwin, doc, reader, pageEl, spot,
       cx: e.clientX, cy: e.clientY,
-      ro, ri: Math.round(ro * 0.38),
+      size, k: size / PW_WHEEL.size, ri: (PW_WHEEL.innerR * size) / PW_WHEEL.size,
       slice: -1,
       wheel: this._wheelDefs(),
       reduced: this._reducedMotion(xwin),
@@ -347,11 +360,7 @@ PingWheel = {
     const g = this._gesture;
     if (!g) return;
     this._stop(e);
-    const dx = e.clientX - g.cx, dy = e.clientY - g.cy;
-    this._setSlice(pwPickSlice(dx, dy, g.ri));
-    const d = Math.hypot(dx, dy) || 1, k = Math.min(1, (g.ro - 6) / d);
-    g.els.line.setAttribute('x2', dx * k);
-    g.els.line.setAttribute('y2', dy * k);
+    this._setSlice(pwPickSlice(e.clientX - g.cx, e.clientY - g.cy, g.ri));
   },
 
   _onPointerUp(e) {
@@ -512,78 +521,86 @@ PingWheel = {
     return wrap;
   },
 
+  /** lolPing's League-style wheel, drawn in its 600-unit space and scaled to the wheel size. */
   _buildWheel(g) {
-    const doc = g.doc, ro = g.ro, ri = g.ri;
-    const box = (ro + 10) * 2, c = box / 2;
+    const doc = g.doc, { innerR, outerR, extR, iconR, iconSize } = PW_WHEEL;
+    const size = g.size, c = size / 2;
     const root = doc.createElement('div');
-    root.style.cssText = `position:fixed;left:${g.cx - c}px;top:${g.cy - c}px;width:${box}px;height:${box}px;`
-      + 'z-index:2147483647;pointer-events:none;user-select:none;'
-      + 'font-family:system-ui,-apple-system,"Segoe UI",sans-serif;';
+    root.style.cssText = `position:fixed;left:${g.cx - c}px;top:${g.cy - c}px;width:${size}px;height:${size}px;`
+      + 'z-index:2147483647;pointer-events:none;user-select:none;';
 
-    const svg = doc.createElementNS(PW_SVGNS, 'svg');
-    svg.setAttribute('width', box);
-    svg.setAttribute('height', box);
-    svg.setAttribute('viewBox', `${-c} ${-c} ${box} ${box}`);
+    const svg = pwSvg(doc, 'svg', { width: size, height: size, viewBox: '-300 -300 600 600' }, root);
     svg.style.cssText = 'position:absolute;left:0;top:0;overflow:visible;';
+    // Gradient ids must not clash with a wheel that is still fading out.
+    const id = `pw-wheel-${++this._wheelCount}`;
+    const defs = pwSvg(doc, 'defs', {}, svg);
+    const gradient = (name, attrs, stops) => {
+      const el = pwSvg(doc, 'radialGradient', { id: `${id}-${name}`, cx: 0, cy: 0, gradientUnits: 'userSpaceOnUse', ...attrs }, defs);
+      for (const [offset, color, opacity = 1] of stops) {
+        pwSvg(doc, 'stop', { offset, 'stop-color': color, 'stop-opacity': opacity }, el);
+      }
+    };
+    gradient('ext', { r: extR }, [[outerR / extR, '#5c6066', 0.55], [1, '#5c6066', 0]]);
+    gradient('ring', { r: outerR }, [[innerR / outerR, '#2a2d31'], [1, '#4a4e54']]);
+    gradient('hot', { r: extR }, [[innerR / extR, '#8a8f96'], [outerR / extR, '#9aa0a8'], [1, '#9aa0a8', 0]]);
+    gradient('core', { cy: -10, r: innerR }, [[0, '#2c5d60'], [1, '#11292c']]);
 
-    const halo = doc.createElementNS(PW_SVGNS, 'circle');
-    halo.setAttribute('r', ro + 4);
-    halo.setAttribute('fill', 'rgba(0,0,0,0.18)');
-    svg.appendChild(halo);
-
-    const paths = [];
+    // The four compass slices reach further out.
+    for (let i = 0; i < 8; i += 2) {
+      pwSvg(doc, 'path', { d: pwSector(outerR, extR, i * 45 - 22.5, i * 45 + 22.5), fill: `url(#${id}-ext)` }, svg);
+    }
+    pwSvg(doc, 'circle', {
+      r: (innerR + outerR) / 2, fill: 'none', stroke: `url(#${id}-ring)`, 'stroke-width': outerR - innerR, opacity: 0.92,
+    }, svg);
+    const wedges = [];
     for (let i = 0; i < 8; i++) {
-      const p = doc.createElementNS(PW_SVGNS, 'path');
-      p.setAttribute('d', pwSector(ri + 3, ro, i * 45 - 22.5 + 1.4, i * 45 + 22.5 - 1.4));
-      p.setAttribute('fill', PW_BASE);
-      p.setAttribute('stroke', PW_RIM);
-      p.setAttribute('stroke-width', '1.2');
-      svg.appendChild(p);
-      paths.push(p);
+      const wedge = pwSvg(doc, 'path', {
+        d: pwSector(innerR, i % 2 ? outerR : extR, i * 45 - 22.5, i * 45 + 22.5), fill: `url(#${id}-hot)`,
+      }, svg);
+      wedge.style.fillOpacity = '0';
+      if (!g.reduced) wedge.style.transition = 'fill-opacity 80ms';
+      wedges.push(wedge);
+      const [x0, y0] = pwPolar(innerR, i * 45 - 22.5), [x1, y1] = pwPolar(outerR, i * 45 - 22.5);
+      pwSvg(doc, 'line', { x1: x0, y1: y0, x2: x1, y2: y1, stroke: '#a08a5c', 'stroke-opacity': 0.45, 'stroke-width': 1.2 }, svg);
     }
 
-    const hub = doc.createElementNS(PW_SVGNS, 'circle');
-    hub.setAttribute('r', ri - 3);
-    hub.setAttribute('fill', PW_BASE);
-    hub.setAttribute('stroke', PW_RIM);
-    hub.setAttribute('stroke-width', '1.2');
-    svg.appendChild(hub);
+    pwSvg(doc, 'circle', { r: innerR + 4, fill: 'none', stroke: '#1a1a1a', 'stroke-width': 6, opacity: 0.6 }, svg);
+    pwSvg(doc, 'circle', { r: innerR, fill: `url(#${id}-core)`, stroke: '#c8aa6e', 'stroke-width': 3 }, svg);
+    pwSvg(doc, 'circle', { r: innerR - 7, fill: 'none', stroke: '#8a7448', 'stroke-width': 1, opacity: 0.6 }, svg);
+    const hubIcon = this._assets.textures.get('generic_ping');
+    if (hubIcon) pwSvg(doc, 'image', { href: hubIcon, x: -20, y: -58, width: 40, height: 40 }, svg);
+    const font = '"Segoe UI", system-ui, -apple-system, sans-serif';
+    const label = pwSvg(doc, 'text', {
+      x: 0, y: 6, 'text-anchor': 'middle', 'font-family': font, 'font-weight': 600, 'font-size': 15, 'letter-spacing': 1, fill: '#1fa9e0',
+    }, svg);
+    // What letting go in the centre does, next to a mouse, as lolPing's BACK.
+    const cancels = this.pref('centerAction') === 'cancel';
+    pwSvg(doc, 'text', {
+      x: cancels ? 6 : 10, y: 50, 'text-anchor': 'middle', 'font-family': font, 'font-weight': 600, 'font-size': 9,
+      'letter-spacing': 0.5, fill: '#6c7a7c',
+    }, svg).textContent = cancels ? 'BACK' : 'GENERIC';
+    const mouse = pwSvg(doc, 'g', { opacity: 0.55, transform: 'translate(-26,40)' }, svg);
+    pwSvg(doc, 'rect', { x: 0, y: 0, width: 11, height: 16, rx: 5.5, fill: 'none', stroke: '#6c7a7c', 'stroke-width': 1.3 }, mouse);
+    pwSvg(doc, 'path', { d: 'M5.5,0 V7 H11 V5.5 A5.5,5.5 0 0 0 5.5,0Z', fill: '#6c7a7c' }, mouse);
 
-    const line = doc.createElementNS(PW_SVGNS, 'line');
-    line.setAttribute('x1', 0);
-    line.setAttribute('y1', 0);
-    line.setAttribute('x2', 0);
-    line.setAttribute('y2', 0);
-    line.setAttribute('stroke-width', '2');
-    line.setAttribute('stroke-linecap', 'round');
-    line.setAttribute('opacity', '0');
-    svg.appendChild(line);
-    root.appendChild(svg);
-
-    const iconSize = Math.round((ro - ri) * 0.56);
+    const iconPx = Math.round(iconSize * g.k);
     const icons = g.wheel.map((def, i) => {
-      const [x, y] = pwPolar((ri + ro) / 2 + 1, i * 45);
-      const el = this._iconEl(doc, def, iconSize, 'icon');
-      el.style.left = `${c + x - iconSize / 2}px`;
-      el.style.top = `${c + y - iconSize / 2}px`;
-      el.style.transition = g.reduced ? 'none' : 'transform 90ms ease-out';
+      const [x, y] = pwPolar(iconR * g.k, i * 45);
+      const el = this._iconEl(doc, def, iconPx, 'icon');
+      el.style.left = `${c + x - iconPx / 2}px`;
+      el.style.top = `${c + y - iconPx / 2}px`;
+      el.style.filter = PW_ICON_TINT;
+      el.style.transition = g.reduced ? 'none' : 'filter 100ms, transform 100ms';
       root.appendChild(el);
       return el;
     });
 
-    const label = doc.createElement('div');
-    const lw = (ri - 8) * 2;
-    label.style.cssText = `position:absolute;left:${c - lw / 2}px;top:${c - 16}px;width:${lw}px;height:32px;`
-      + `display:flex;align-items:center;justify-content:center;text-align:center;`
-      + `color:${PW_INK};font-size:${ro < 100 ? 10 : 11}px;font-weight:600;line-height:1.15;letter-spacing:0.01em;`;
-    root.appendChild(label);
-
     (doc.body || doc.documentElement).appendChild(root);
-    g.els = { root, paths, icons, label, line };
+    g.els = { root, wedges, icons, label };
 
     if (!g.reduced) {
-      pwAnimate(root, [{ opacity: 0, transform: 'scale(0.86)' }, { opacity: 1, transform: 'scale(1)' }],
-        { duration: 110, easing: 'ease-out' });
+      pwAnimate(root, [{ opacity: 0, transform: 'scale(0.85)' }, { opacity: 1, transform: 'scale(1)' }],
+        { duration: 120, easing: 'ease-out' });
     }
   },
 
@@ -591,25 +608,22 @@ PingWheel = {
     const g = this._gesture;
     if (!g || !g.els) return;
     if (i === g.slice && g.els.label.textContent) return;
-    const { paths, icons, label, line } = g.els;
+    const { wedges, icons, label } = g.els;
     if (g.slice >= 0) {
-      paths[g.slice].setAttribute('fill', PW_BASE);
-      paths[g.slice].setAttribute('stroke', PW_RIM);
+      wedges[g.slice].style.fillOpacity = '0';
+      icons[g.slice].style.filter = PW_ICON_TINT;
       icons[g.slice].style.transform = 'scale(1)';
     }
     g.slice = i;
     if (i >= 0) {
-      const def = g.wheel[i];
-      paths[i].setAttribute('fill', pwRgba(def.color, 0.78));
-      paths[i].setAttribute('stroke', def.color);
+      wedges[i].style.fillOpacity = '0.55';
+      icons[i].style.filter = 'none';
       icons[i].style.transform = 'scale(1.18)';
-      label.textContent = def.name;
-      line.setAttribute('stroke', def.color);
-      line.setAttribute('opacity', '0.9');
-    } else {
-      label.textContent = this.pref('centerAction') === 'cancel' ? 'Cancel' : 'Generic';
-      line.setAttribute('opacity', '0');
     }
+    // lolPing always shows PING; naming the hovered ping helps here. Long names get a smaller font to fit the hub.
+    const name = i >= 0 ? g.wheel[i].name : 'Ping';
+    label.textContent = name.toUpperCase();
+    label.setAttribute('font-size', name.length > 12 ? 11 : 15);
   },
 
   _removeWheel(g) {

@@ -22,8 +22,8 @@ SOFTWARE.
 
 ---
 
-Portions (the wheel slice geometry and the ping list and colors) are adapted
-from lolPing, https://github.com/darrenprx/lolPing, under the MIT License:
+Portions (the wheel's look and slice geometry, and the ping list and colors) are
+adapted from lolPing, https://github.com/darrenprx/lolPing, under the MIT License:
 
 Copyright (c) 2026 Danrui Meng
 

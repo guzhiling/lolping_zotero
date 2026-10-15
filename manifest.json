@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Ping Wheel",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A League-style ping wheel for Zotero's PDF reader. Each ping is saved as a colored note annotation.",
   "author": "Ping Wheel contributors",
   "icons": { "48": "icon.png", "96": "icon@2x.png" },

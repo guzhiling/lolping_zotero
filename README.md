@@ -2,7 +2,7 @@
 
 A League-style ping wheel for Zotero's PDF reader, inspired by [lolPing](https://github.com/darrenprx/lolPing). Ping a spot to flag it for a moment, or ping it twice to save the ping as a note annotation that shows in the annotation sidebar, syncs, and goes into the PDF when you export it.
 
-![The ping wheel open over a PDF in Zotero, an All In ping saved on the page as its art, and a click on the art opening its note](docs/demo.gif)
+![The ping wheel open over a PDF in Zotero, an All In ping saved on the page as its art, and a click on the art opening its note](docs/demo_full.gif)
 
 ## Install
 
@@ -39,7 +39,9 @@ Zotero Settings → Ping Wheel: the trigger (G by default, another key, or Alt, 
 
 ## Credits
 
-Ping Wheel is a Zotero port of [lolPing](https://github.com/darrenprx/lolPing) by Danrui Meng ([@darrenprx](https://github.com/darrenprx)). The wheel slice geometry and the ping list and colors are adapted from lolPing's source under the MIT License. See `LICENSE` for the full notice.
+Ping Wheel is a Zotero port of [lolPing](https://github.com/darrenprx/lolPing) by Danrui Meng ([@darrenprx](https://github.com/darrenprx)). The wheel's look and slice geometry, and the ping list and colors, are adapted from lolPing's source under the MIT License. See `LICENSE` for the full notice.
+
+The plugin was implemented with Claude Opus 5.5, Anthropic's AI model, in [Claude Code](https://claude.com/claude-code).
 
 The ping art and sounds in `assets/` are © Riot Games, Inc. lolPing extracted them from League of Legends, and they are included here under Riot's [Legal Jibber Jabber](https://www.riotgames.com/en/legal) policy for free fan projects. They aren't covered by the MIT License.
 
